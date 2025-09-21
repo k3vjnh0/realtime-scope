@@ -22,6 +22,13 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          glow: "hsl(var(--primary-glow))",
+        },
+        dashboard: {
+          accent: "hsl(var(--dashboard-accent))",
+          success: "hsl(var(--dashboard-success))",
+          warning: "hsl(var(--dashboard-warning))",
+          danger: "hsl(var(--dashboard-danger))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
