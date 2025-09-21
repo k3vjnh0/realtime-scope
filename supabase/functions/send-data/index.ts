@@ -47,9 +47,9 @@ serve(async (req) => {
       const { data, error } = await supabase
         .from('agricultural_data')
         .insert([{
-          N: Number(body.N),
-          P: Number(body.P),
-          K: Number(body.K),
+          n: Number(body.N),
+          p: Number(body.P),
+          k: Number(body.K),
           temperature: Number(body.temperature),
           humidity: Number(body.humidity),
           ph: Number(body.ph),
