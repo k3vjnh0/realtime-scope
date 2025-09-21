@@ -13,7 +13,8 @@ import {
   TreePine,
   Sprout,
   Bug,
-  MapPin
+  MapPin,
+  Database
 } from "lucide-react";
 import { MetricCard } from "@/components/MetricCard";
 import { SensorChart } from "@/components/SensorChart";
@@ -58,6 +59,7 @@ interface CSVData {
 
 export default function Dashboard() {
   const [uploadedData, setUploadedData] = useState<CSVData[]>([]);
+  const [latestDbData, setLatestDbData] = useState<any>(null);
 
   // Helper functions for data interpretation
   const getSoilTypeName = (type: number | string): string => {
@@ -92,24 +94,33 @@ export default function Dashboard() {
 
   // Get most recent data point and calculate metrics
   const processedMetrics = useMemo(() => {
-    if (uploadedData.length === 0) {
+    // Prioritize latest database data over CSV data
+    const sourceData = latestDbData || (uploadedData.length > 0 ? uploadedData[uploadedData.length - 1] : null);
+    
+    if (!sourceData) {
       return {
         temperature: 22,
         soilMoisture: 65,
         pestPressure: 15,
         cropHealthScore: 85,
-        latestData: null
+        latestData: null,
+        dataSource: 'default'
       };
     }
 
-    // Get the most recent data point
-    const latestData = uploadedData[uploadedData.length - 1];
+    // Handle both database format and CSV format
+    const latestData = {
+      ...sourceData,
+      N: sourceData.n || sourceData.N,
+      P: sourceData.p || sourceData.P,
+      K: sourceData.k || sourceData.K
+    };
     
     // Calculate crop health score for the latest data
     const cropHealthScore = Math.min(100, 
       (latestData.soil_moisture / 100 * 30) + 
       (latestData.ph > 6 && latestData.ph < 8 ? 25 : 10) + 
-      (latestData.N + latestData.P + latestData.K) / 300 * 25 + 
+      ((latestData.N || latestData.n) + (latestData.P || latestData.p) + (latestData.K || latestData.k)) / 300 * 25 + 
       (100 - latestData.pest_pressure)
     );
 
@@ -118,9 +129,10 @@ export default function Dashboard() {
       soilMoisture: Math.round(latestData.soil_moisture * 10) / 10,
       pestPressure: Math.round(latestData.pest_pressure * 10) / 10,
       cropHealthScore: Math.round(cropHealthScore * 10) / 10,
-      latestData
+      latestData,
+      dataSource: latestDbData ? 'database' : 'csv'
     };
-  }, [uploadedData]);
+  }, [uploadedData, latestDbData]);
 
   // Generate time series data from uploaded data
   const generateTimeSeriesData = (field: keyof CSVData, unit: string) => {
@@ -137,6 +149,10 @@ export default function Dashboard() {
   const handleDataUpload = (data: CSVData[]) => {
     setUploadedData(data);
   };
+
+  const handleLatestDataFetched = (data: any) => {
+    setLatestDbData(data);
+  };
   return (
     <div className="space-y-8">
       <div>
@@ -151,35 +167,44 @@ export default function Dashboard() {
       <DataSender />
 
       {/* Latest Data Display */}
-      <LatestDataDisplay />
+      <LatestDataDisplay onDataFetched={handleLatestDataFetched} />
+      
+      {processedMetrics.dataSource === 'database' && (
+        <div className="glass-card p-4">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Database className="h-4 w-4" />
+            <span>Displaying latest data from database - {new Date(latestDbData?.created_at).toLocaleString()}</span>
+          </div>
+        </div>
+      )}
 
       {/* Key Metrics Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
           title="Temperature"
           value={`${processedMetrics.temperature}°C`}
-          change={uploadedData.length > 0 ? "Latest Reading" : "Optimal for growth"}
+          change={processedMetrics.dataSource !== 'default' ? "Latest Reading" : "Optimal for growth"}
           changeType="positive"
           icon={Thermometer}
         />
         <MetricCard
           title="Soil Moisture"
           value={`${processedMetrics.soilMoisture}%`}
-          change={uploadedData.length > 0 ? "Latest Reading" : "Well hydrated"}
+          change={processedMetrics.dataSource !== 'default' ? "Latest Reading" : "Well hydrated"}
           changeType="positive"
           icon={Droplets}
         />
         <MetricCard
           title="Crop Health"
-          value={uploadedData.length > 0 ? `${processedMetrics.cropHealthScore}%` : "Excellent"}
-          change={uploadedData.length > 0 ? "Calculated Score" : "97% plant vitality"}
+          value={processedMetrics.dataSource !== 'default' ? `${processedMetrics.cropHealthScore}%` : "Excellent"}
+          change={processedMetrics.dataSource !== 'default' ? "Calculated Score" : "97% plant vitality"}
           changeType="positive"
           icon={Leaf}
         />
         <MetricCard
           title="Pest Pressure"
-          value={uploadedData.length > 0 ? `${processedMetrics.pestPressure}` : "Low"}
-          change={uploadedData.length > 0 ? "Risk Index" : "No threats detected"}
+          value={processedMetrics.dataSource !== 'default' ? `${processedMetrics.pestPressure}` : "Low"}
+          change={processedMetrics.dataSource !== 'default' ? "Risk Index" : "No threats detected"}
           changeType="positive"
           icon={Bug}
         />
