@@ -14,7 +14,99 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      agricultural_data: {
+        Row: {
+          co2_concentration: number
+          created_at: string
+          crop_density: number
+          device_id: string | null
+          fertilizer_usage: number
+          frost_risk: number
+          growth_stage: string
+          humidity: number
+          id: string
+          irrigation_frequency: number
+          k: number
+          label: string
+          location: string | null
+          n: number
+          organic_matter: number
+          p: number
+          pest_pressure: number
+          ph: number
+          rainfall: number
+          soil_moisture: number
+          soil_type: string
+          sunlight_exposure: number
+          temperature: number
+          timestamp: string
+          urban_area_proximity: number
+          water_source_type: string
+          water_usage_efficiency: number
+          wind_speed: number
+        }
+        Insert: {
+          co2_concentration: number
+          created_at?: string
+          crop_density: number
+          device_id?: string | null
+          fertilizer_usage: number
+          frost_risk: number
+          growth_stage: string
+          humidity: number
+          id?: string
+          irrigation_frequency: number
+          k: number
+          label: string
+          location?: string | null
+          n: number
+          organic_matter: number
+          p: number
+          pest_pressure: number
+          ph: number
+          rainfall: number
+          soil_moisture: number
+          soil_type: string
+          sunlight_exposure: number
+          temperature: number
+          timestamp?: string
+          urban_area_proximity: number
+          water_source_type: string
+          water_usage_efficiency: number
+          wind_speed: number
+        }
+        Update: {
+          co2_concentration?: number
+          created_at?: string
+          crop_density?: number
+          device_id?: string | null
+          fertilizer_usage?: number
+          frost_risk?: number
+          growth_stage?: string
+          humidity?: number
+          id?: string
+          irrigation_frequency?: number
+          k?: number
+          label?: string
+          location?: string | null
+          n?: number
+          organic_matter?: number
+          p?: number
+          pest_pressure?: number
+          ph?: number
+          rainfall?: number
+          soil_moisture?: number
+          soil_type?: string
+          sunlight_exposure?: number
+          temperature?: number
+          timestamp?: string
+          urban_area_proximity?: number
+          water_source_type?: string
+          water_usage_efficiency?: number
+          wind_speed?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
