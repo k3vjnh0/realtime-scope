@@ -41,7 +41,7 @@ export function AppSidebar() {
 
   const isActive = (path: string) => currentPath === path;
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
-    isActive ? "bg-primary text-primary-foreground font-medium" : "hover:bg-muted/50";
+    isActive ? "bg-primary text-primary-foreground font-medium" : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground";
 
   return (
     <Sidebar className={isCollapsed ? "w-14" : "w-64"} collapsible="icon">
@@ -51,7 +51,7 @@ export function AppSidebar() {
             <Activity className="h-8 w-8 text-primary" />
             {!isCollapsed && (
               <div>
-                <h2 className="text-lg font-bold gradient-text">IoT Dashboard</h2>
+                <h2 className="text-lg font-bold text-sidebar-foreground">IoT Dashboard</h2>
                 <p className="text-xs text-muted-foreground">Data Visualization</p>
               </div>
             )}
@@ -59,7 +59,7 @@ export function AppSidebar() {
         </div>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-foreground">Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
