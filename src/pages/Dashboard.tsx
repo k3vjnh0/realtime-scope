@@ -181,6 +181,8 @@ export default function Dashboard() {
             <p className="text-sm text-muted-foreground">From urban area</p>
           </div>
         </div>
+      </div>
+
       {/* Water Management */}
       <div className="space-y-4">
         <h2 className="text-2xl font-semibold text-foreground">Water Management</h2>
