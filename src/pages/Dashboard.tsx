@@ -1,3 +1,4 @@
+import React, { useState, useMemo } from 'react';
 import { 
   Thermometer, 
   Droplets, 
@@ -17,6 +18,7 @@ import {
 import { MetricCard } from "@/components/MetricCard";
 import { SensorChart } from "@/components/SensorChart";
 import { NutrientChart, StatusGauge } from "@/components/AgricultureCharts";
+import { CSVUploader } from "@/components/CSVUploader";
 import { 
   environmentalData, 
   soilData, 
@@ -26,7 +28,85 @@ import {
   deviceStatus 
 } from "@/data/mockData";
 
+interface CSVData {
+  N: number;
+  P: number;
+  K: number;
+  temperature: number;
+  humidity: number;
+  ph: number;
+  rainfall: number;
+  label: string;
+  soil_moisture: number;
+  soil_type: string;
+  sunlight_exposure: number;
+  wind_speed: number;
+  co2_concentration: number;
+  organic_matter: number;
+  irrigation_frequency: number;
+  crop_density: number;
+  pest_pressure: number;
+  fertilizer_usage: number;
+  growth_stage: string;
+  urban_area_proximity: number;
+  water_source_type: string;
+  frost_risk: number;
+  water_usage_efficiency: number;
+}
+
 export default function Dashboard() {
+  const [uploadedData, setUploadedData] = useState<CSVData[]>([]);
+
+  // Calculate aggregated metrics from uploaded data
+  const processedMetrics = useMemo(() => {
+    if (uploadedData.length === 0) {
+      return {
+        avgTemperature: 22,
+        avgSoilMoisture: 65,
+        avgPestPressure: 15,
+        cropHealthScore: 85
+      };
+    }
+
+    const total = uploadedData.length;
+    const avgTemperature = uploadedData.reduce((sum, item) => sum + item.temperature, 0) / total;
+    const avgSoilMoisture = uploadedData.reduce((sum, item) => sum + item.soil_moisture, 0) / total;
+    const avgPestPressure = uploadedData.reduce((sum, item) => sum + item.pest_pressure, 0) / total;
+    
+    // Calculate crop health score based on multiple factors
+    const cropHealthScore = uploadedData.reduce((sum, item) => {
+      const healthScore = Math.min(100, 
+        (item.soil_moisture / 100 * 30) + 
+        (item.ph > 6 && item.ph < 8 ? 25 : 10) + 
+        (item.N + item.P + item.K) / 300 * 25 + 
+        (100 - item.pest_pressure)
+      );
+      return sum + healthScore;
+    }, 0) / total;
+
+    return {
+      avgTemperature: Math.round(avgTemperature * 10) / 10,
+      avgSoilMoisture: Math.round(avgSoilMoisture * 10) / 10,
+      avgPestPressure: Math.round(avgPestPressure * 10) / 10,
+      cropHealthScore: Math.round(cropHealthScore * 10) / 10
+    };
+  }, [uploadedData]);
+
+  // Generate time series data from uploaded data
+  const generateTimeSeriesData = (field: keyof CSVData, unit: string) => {
+    if (uploadedData.length === 0) {
+      return environmentalData.temperature; // fallback to mock data
+    }
+
+    return uploadedData.slice(0, 24).map((item, index) => ({
+      time: `${index.toString().padStart(2, '0')}:00`,
+      value: Number(item[field]) || 0
+    }));
+  };
+
+  const handleDataUpload = (data: CSVData[]) => {
+    setUploadedData(data);
+  };
   return (
     <div className="space-y-8">
       <div>
@@ -34,33 +114,36 @@ export default function Dashboard() {
         <p className="text-muted-foreground">Comprehensive crop and environmental monitoring system</p>
       </div>
 
+      {/* CSV Upload Section */}
+      <CSVUploader onDataUpload={handleDataUpload} />
+
       {/* Key Metrics Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
           title="Temperature"
-          value="24.5°C"
-          change="Optimal for growth"
+          value={`${processedMetrics.avgTemperature}°C`}
+          change={uploadedData.length > 0 ? "Real Data" : "Optimal for growth"}
           changeType="positive"
           icon={Thermometer}
         />
         <MetricCard
           title="Soil Moisture"
-          value="52.3%"
-          change="Well hydrated"
+          value={`${processedMetrics.avgSoilMoisture}%`}
+          change={uploadedData.length > 0 ? "Real Data" : "Well hydrated"}
           changeType="positive"
           icon={Droplets}
         />
         <MetricCard
           title="Crop Health"
-          value="Excellent"
-          change="97% plant vitality"
+          value={uploadedData.length > 0 ? `${processedMetrics.cropHealthScore}%` : "Excellent"}
+          change={uploadedData.length > 0 ? "Real Data" : "97% plant vitality"}
           changeType="positive"
           icon={Leaf}
         />
         <MetricCard
           title="Pest Pressure"
-          value="Low"
-          change="No threats detected"
+          value={uploadedData.length > 0 ? `${processedMetrics.avgPestPressure}%` : "Low"}
+          change={uploadedData.length > 0 ? "Real Data" : "No threats detected"}
           changeType="positive"
           icon={Bug}
         />
@@ -72,13 +155,13 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <SensorChart
             title="Temperature (24h)"
-            data={environmentalData.temperature}
+            data={generateTimeSeriesData('temperature', '°C')}
             color="hsl(var(--primary))"
             unit="°C"
           />
           <SensorChart
             title="Humidity (24h)"
-            data={environmentalData.humidity}
+            data={generateTimeSeriesData('humidity', '%')}
             color="hsl(var(--dashboard-accent))"
             unit="%"
           />
@@ -87,13 +170,13 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <SensorChart
             title="CO2 Concentration (24h)"
-            data={environmentalData.co2_concentration}
+            data={generateTimeSeriesData('co2_concentration', ' ppm')}
             color="hsl(var(--dashboard-warning))"
             unit=" ppm"
           />
           <SensorChart
             title="Wind Speed (24h)"
-            data={environmentalData.wind_speed}
+            data={generateTimeSeriesData('wind_speed', ' m/s')}
             color="hsl(var(--dashboard-success))"
             unit=" m/s"
           />
@@ -101,7 +184,7 @@ export default function Dashboard() {
         
         <SensorChart
           title="Sunlight Exposure (24h)"
-          data={environmentalData.sunlight_exposure}
+          data={generateTimeSeriesData('sunlight_exposure', '%')}
           color="hsl(38 92% 50%)"
           unit="%"
         />
