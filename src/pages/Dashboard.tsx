@@ -20,6 +20,7 @@ import { SensorChart } from "@/components/SensorChart";
 import { NutrientChart, StatusGauge } from "@/components/AgricultureCharts";
 import { CSVUploader } from "@/components/CSVUploader";
 import { DataSender } from "@/components/DataSender";
+import { LatestDataDisplay } from "@/components/LatestDataDisplay";
 import { 
   environmentalData, 
   soilData, 
@@ -148,6 +149,9 @@ export default function Dashboard() {
 
       {/* Data Sender Section */}
       <DataSender />
+
+      {/* Latest Data Display */}
+      <LatestDataDisplay />
 
       {/* Key Metrics Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
