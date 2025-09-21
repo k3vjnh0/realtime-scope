@@ -57,38 +57,66 @@ interface CSVData {
 export default function Dashboard() {
   const [uploadedData, setUploadedData] = useState<CSVData[]>([]);
 
-  // Calculate aggregated metrics from uploaded data
+  // Helper functions for data interpretation
+  const getSoilTypeName = (type: number | string): string => {
+    const numType = Number(type);
+    switch (numType) {
+      case 1: return 'Sandy';
+      case 2: return 'Loamy';
+      case 3: return 'Clay';
+      default: return String(type);
+    }
+  };
+
+  const getGrowthStageName = (stage: number | string): string => {
+    const numStage = Number(stage);
+    switch (numStage) {
+      case 1: return 'Seedling';
+      case 2: return 'Vegetative';
+      case 3: return 'Flowering';
+      default: return String(stage);
+    }
+  };
+
+  const getWaterSourceName = (source: number | string): string => {
+    const numSource = Number(source);
+    switch (numSource) {
+      case 1: return 'River';
+      case 2: return 'Groundwater';
+      case 3: return 'Recycled';
+      default: return String(source);
+    }
+  };
+
+  // Get most recent data point and calculate metrics
   const processedMetrics = useMemo(() => {
     if (uploadedData.length === 0) {
       return {
-        avgTemperature: 22,
-        avgSoilMoisture: 65,
-        avgPestPressure: 15,
-        cropHealthScore: 85
+        temperature: 22,
+        soilMoisture: 65,
+        pestPressure: 15,
+        cropHealthScore: 85,
+        latestData: null
       };
     }
 
-    const total = uploadedData.length;
-    const avgTemperature = uploadedData.reduce((sum, item) => sum + item.temperature, 0) / total;
-    const avgSoilMoisture = uploadedData.reduce((sum, item) => sum + item.soil_moisture, 0) / total;
-    const avgPestPressure = uploadedData.reduce((sum, item) => sum + item.pest_pressure, 0) / total;
+    // Get the most recent data point
+    const latestData = uploadedData[uploadedData.length - 1];
     
-    // Calculate crop health score based on multiple factors
-    const cropHealthScore = uploadedData.reduce((sum, item) => {
-      const healthScore = Math.min(100, 
-        (item.soil_moisture / 100 * 30) + 
-        (item.ph > 6 && item.ph < 8 ? 25 : 10) + 
-        (item.N + item.P + item.K) / 300 * 25 + 
-        (100 - item.pest_pressure)
-      );
-      return sum + healthScore;
-    }, 0) / total;
+    // Calculate crop health score for the latest data
+    const cropHealthScore = Math.min(100, 
+      (latestData.soil_moisture / 100 * 30) + 
+      (latestData.ph > 6 && latestData.ph < 8 ? 25 : 10) + 
+      (latestData.N + latestData.P + latestData.K) / 300 * 25 + 
+      (100 - latestData.pest_pressure)
+    );
 
     return {
-      avgTemperature: Math.round(avgTemperature * 10) / 10,
-      avgSoilMoisture: Math.round(avgSoilMoisture * 10) / 10,
-      avgPestPressure: Math.round(avgPestPressure * 10) / 10,
-      cropHealthScore: Math.round(cropHealthScore * 10) / 10
+      temperature: Math.round(latestData.temperature * 10) / 10,
+      soilMoisture: Math.round(latestData.soil_moisture * 10) / 10,
+      pestPressure: Math.round(latestData.pest_pressure * 10) / 10,
+      cropHealthScore: Math.round(cropHealthScore * 10) / 10,
+      latestData
     };
   }, [uploadedData]);
 
@@ -121,29 +149,29 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
           title="Temperature"
-          value={`${processedMetrics.avgTemperature}°C`}
-          change={uploadedData.length > 0 ? "Real Data" : "Optimal for growth"}
+          value={`${processedMetrics.temperature}°C`}
+          change={uploadedData.length > 0 ? "Latest Reading" : "Optimal for growth"}
           changeType="positive"
           icon={Thermometer}
         />
         <MetricCard
           title="Soil Moisture"
-          value={`${processedMetrics.avgSoilMoisture}%`}
-          change={uploadedData.length > 0 ? "Real Data" : "Well hydrated"}
+          value={`${processedMetrics.soilMoisture}%`}
+          change={uploadedData.length > 0 ? "Latest Reading" : "Well hydrated"}
           changeType="positive"
           icon={Droplets}
         />
         <MetricCard
           title="Crop Health"
           value={uploadedData.length > 0 ? `${processedMetrics.cropHealthScore}%` : "Excellent"}
-          change={uploadedData.length > 0 ? "Real Data" : "97% plant vitality"}
+          change={uploadedData.length > 0 ? "Calculated Score" : "97% plant vitality"}
           changeType="positive"
           icon={Leaf}
         />
         <MetricCard
           title="Pest Pressure"
-          value={uploadedData.length > 0 ? `${processedMetrics.avgPestPressure}%` : "Low"}
-          change={uploadedData.length > 0 ? "Real Data" : "No threats detected"}
+          value={uploadedData.length > 0 ? `${processedMetrics.pestPressure}` : "Low"}
+          change={uploadedData.length > 0 ? "Risk Index" : "No threats detected"}
           changeType="positive"
           icon={Bug}
         />
@@ -176,17 +204,17 @@ export default function Dashboard() {
           />
           <SensorChart
             title="Wind Speed (24h)"
-            data={generateTimeSeriesData('wind_speed', ' m/s')}
+            data={generateTimeSeriesData('wind_speed', ' km/h')}
             color="hsl(var(--dashboard-success))"
-            unit=" m/s"
+            unit=" km/h"
           />
         </div>
         
         <SensorChart
           title="Sunlight Exposure (24h)"
-          data={generateTimeSeriesData('sunlight_exposure', '%')}
+          data={generateTimeSeriesData('sunlight_exposure', ' hrs/day')}
           color="hsl(38 92% 50%)"
-          unit="%"
+          unit=" hrs/day"
         />
       </div>
 
@@ -252,7 +280,9 @@ export default function Dashboard() {
               <TreePine className="h-5 w-5 text-primary" />
               <span className="font-medium text-foreground">Soil Type</span>
             </div>
-            <p className="text-2xl font-bold text-foreground">{locationContext.soil_type}</p>
+            <p className="text-2xl font-bold text-foreground">
+              {processedMetrics.latestData ? getSoilTypeName(processedMetrics.latestData.soil_type) : locationContext.soil_type}
+            </p>
             <p className="text-sm text-muted-foreground">Well-draining</p>
           </div>
           <div className="glass-card p-6">
@@ -260,7 +290,9 @@ export default function Dashboard() {
               <MapPin className="h-5 w-5 text-primary" />
               <span className="font-medium text-foreground">Location</span>
             </div>
-            <p className="text-2xl font-bold text-foreground">{locationContext.urban_area_proximity}km</p>
+            <p className="text-2xl font-bold text-foreground">
+              {processedMetrics.latestData ? `${processedMetrics.latestData.urban_area_proximity}km` : `${locationContext.urban_area_proximity}km`}
+            </p>
             <p className="text-sm text-muted-foreground">From urban area</p>
           </div>
         </div>
@@ -280,9 +312,9 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <StatusGauge
               title="Water Efficiency"
-              value={waterManagement.water_usage_efficiency}
-              maxValue={100}
-              unit="%"
+              value={processedMetrics.latestData ? processedMetrics.latestData.water_usage_efficiency : waterManagement.water_usage_efficiency}
+              maxValue={processedMetrics.latestData ? 10 : 100}
+              unit={processedMetrics.latestData ? " L/kg" : "%"}
               color="hsl(var(--dashboard-success))"
               status="good"
             />
@@ -291,7 +323,9 @@ export default function Dashboard() {
                 <CloudRain className="h-5 w-5 text-primary" />
                 <span className="font-medium text-foreground">Irrigation</span>
               </div>
-              <p className="text-2xl font-bold text-foreground">{waterManagement.irrigation_frequency}</p>
+              <p className="text-2xl font-bold text-foreground">
+                {processedMetrics.latestData ? processedMetrics.latestData.irrigation_frequency : waterManagement.irrigation_frequency}
+              </p>
               <p className="text-sm text-muted-foreground">times per week</p>
             </div>
           </div>
@@ -300,15 +334,23 @@ export default function Dashboard() {
         <div className="glass-card p-6">
           <div className="flex items-center gap-3 mb-4">
             <Droplets className="h-5 w-5 text-primary" />
-            <span className="font-medium text-foreground">Water Source: {waterManagement.water_source_type}</span>
+            <span className="font-medium text-foreground">
+              Water Source: {processedMetrics.latestData ? getWaterSourceName(processedMetrics.latestData.water_source_type) : waterManagement.water_source_type}
+            </span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-dashboard-success">{waterManagement.water_usage_efficiency}%</p>
-              <p className="text-sm text-muted-foreground">Efficiency Rate</p>
+              <p className="text-2xl font-bold text-dashboard-success">
+                {processedMetrics.latestData ? `${processedMetrics.latestData.water_usage_efficiency} L/kg` : `${waterManagement.water_usage_efficiency}%`}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {processedMetrics.latestData ? "Water Usage Efficiency" : "Efficiency Rate"}
+              </p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-dashboard-accent">{waterManagement.irrigation_frequency}</p>
+              <p className="text-2xl font-bold text-dashboard-accent">
+                {processedMetrics.latestData ? processedMetrics.latestData.irrigation_frequency : waterManagement.irrigation_frequency}
+              </p>
               <p className="text-sm text-muted-foreground">Weekly Frequency</p>
             </div>
             <div className="text-center">
@@ -329,7 +371,9 @@ export default function Dashboard() {
               <Leaf className="h-5 w-5 text-primary" />
               <span className="font-medium text-foreground">Crop Type</span>
             </div>
-            <p className="text-2xl font-bold text-foreground">{cropManagement.label}</p>
+            <p className="text-2xl font-bold text-foreground">
+              {processedMetrics.latestData ? processedMetrics.latestData.label : cropManagement.label}
+            </p>
             <p className="text-sm text-muted-foreground">Primary crop</p>
           </div>
           
@@ -338,7 +382,9 @@ export default function Dashboard() {
               <Sprout className="h-5 w-5 text-primary" />
               <span className="font-medium text-foreground">Growth Stage</span>
             </div>
-            <p className="text-2xl font-bold text-foreground">{cropManagement.growth_stage}</p>
+            <p className="text-2xl font-bold text-foreground">
+              {processedMetrics.latestData ? getGrowthStageName(processedMetrics.latestData.growth_stage) : cropManagement.growth_stage}
+            </p>
             <p className="text-sm text-muted-foreground">Current phase</p>
           </div>
           
@@ -347,7 +393,9 @@ export default function Dashboard() {
               <Bug className="h-5 w-5 text-primary" />
               <span className="font-medium text-foreground">Pest Pressure</span>
             </div>
-            <p className="text-2xl font-bold text-dashboard-success">{cropManagement.pest_pressure}</p>
+            <p className="text-2xl font-bold text-dashboard-success">
+              {processedMetrics.latestData ? processedMetrics.latestData.pest_pressure : cropManagement.pest_pressure}
+            </p>
             <p className="text-sm text-muted-foreground">Risk level</p>
           </div>
           
@@ -356,7 +404,9 @@ export default function Dashboard() {
               <Beaker className="h-5 w-5 text-primary" />
               <span className="font-medium text-foreground">Fertilizer Usage</span>
             </div>
-            <p className="text-2xl font-bold text-foreground">{cropManagement.fertilizer_usage}</p>
+            <p className="text-2xl font-bold text-foreground">
+              {processedMetrics.latestData ? processedMetrics.latestData.fertilizer_usage : cropManagement.fertilizer_usage}
+            </p>
             <p className="text-sm text-muted-foreground">kg per hectare</p>
           </div>
         </div>
@@ -364,9 +414,9 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <StatusGauge
             title="Crop Density"
-            value={cropManagement.crop_density}
+            value={processedMetrics.latestData ? processedMetrics.latestData.crop_density : cropManagement.crop_density}
             maxValue={500}
-            unit=" plants/ha"
+            unit=" plants/m²"
             color="hsl(var(--dashboard-success))"
             status="good"
           />
@@ -378,7 +428,9 @@ export default function Dashboard() {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Frost Risk</span>
-                <span className="px-2 py-1 bg-dashboard-success/20 text-dashboard-success rounded text-sm">{cropManagement.frost_risk}</span>
+                <span className="px-2 py-1 bg-dashboard-success/20 text-dashboard-success rounded text-sm">
+                  {processedMetrics.latestData ? processedMetrics.latestData.frost_risk : cropManagement.frost_risk}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Disease Pressure</span>
