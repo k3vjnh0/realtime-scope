@@ -43,6 +43,25 @@ serve(async (req) => {
         }
       }
 
+      // Helper function to convert numeric codes to string values
+      const convertToString = (value: any, type: string): string => {
+        if (typeof value === 'string') return value;
+        
+        switch (type) {
+          case 'soil_type':
+            const soilTypes = ['Sandy', 'Clay', 'Loamy', 'Silty'];
+            return soilTypes[Number(value) - 1] || 'Unknown';
+          case 'growth_stage':
+            const growthStages = ['Seedling', 'Vegetative', 'Flowering', 'Fruiting'];
+            return growthStages[Number(value) - 1] || 'Unknown';
+          case 'water_source_type':
+            const waterSources = ['Well', 'River', 'Rainwater', 'Recycled'];
+            return waterSources[Number(value) - 1] || 'Unknown';
+          default:
+            return String(value);
+        }
+      };
+
       // Insert data into the database
       const { data, error } = await supabase
         .from('agricultural_data')
@@ -54,9 +73,9 @@ serve(async (req) => {
           humidity: Number(body.humidity),
           ph: Number(body.ph),
           rainfall: Number(body.rainfall),
-          label: String(body.label || 'Unknown'),
+          label: String(body.predicted_crop || body.label || 'Unknown'),
           soil_moisture: Number(body.soil_moisture),
-          soil_type: String(body.soil_type),
+          soil_type: convertToString(body.soil_type, 'soil_type'),
           sunlight_exposure: Number(body.sunlight_exposure),
           wind_speed: Number(body.wind_speed),
           co2_concentration: Number(body.co2_concentration),
@@ -65,9 +84,9 @@ serve(async (req) => {
           crop_density: Number(body.crop_density),
           pest_pressure: Number(body.pest_pressure),
           fertilizer_usage: Number(body.fertilizer_usage),
-          growth_stage: String(body.growth_stage),
+          growth_stage: convertToString(body.growth_stage, 'growth_stage'),
           urban_area_proximity: Number(body.urban_area_proximity),
-          water_source_type: String(body.water_source_type),
+          water_source_type: convertToString(body.water_source_type, 'water_source_type'),
           frost_risk: Number(body.frost_risk),
           water_usage_efficiency: Number(body.water_usage_efficiency),
           device_id: body.device_id || null,
@@ -92,8 +111,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: 'Data inserted successfully',
-          data: data[0]
+          message: 'Dashboard updated'
         }),
         {
           status: 200,
