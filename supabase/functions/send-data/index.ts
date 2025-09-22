@@ -21,14 +21,15 @@ serve(async (req) => {
     if (req.method === 'POST') {
       const body = await req.json();
       
-      // Validate required fields
+      // Validate required fields from n8n
       const requiredFields = [
         'N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall', 
-        'label', 'soil_moisture', 'soil_type', 'sunlight_exposure', 
+        'soil_moisture', 'soil_type', 'sunlight_exposure', 
         'wind_speed', 'co2_concentration', 'organic_matter', 
         'irrigation_frequency', 'crop_density', 'pest_pressure', 
         'fertilizer_usage', 'growth_stage', 'urban_area_proximity', 
-        'water_source_type', 'frost_risk', 'water_usage_efficiency'
+        'water_source_type', 'frost_risk', 'water_usage_efficiency',
+        'predicted_crop'
       ];
 
       for (const field of requiredFields) {
@@ -54,7 +55,7 @@ serve(async (req) => {
           humidity: Number(body.humidity),
           ph: Number(body.ph),
           rainfall: Number(body.rainfall),
-          label: String(body.label),
+          label: String(body.predicted_crop || body.label),
           soil_moisture: Number(body.soil_moisture),
           soil_type: String(body.soil_type),
           sunlight_exposure: Number(body.sunlight_exposure),
