@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
+import DataInput from "./pages/DataInput";
 import NotFound from "./pages/NotFound";
 
 const App = () => {
@@ -19,7 +20,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<DashboardLayout />}>
               <Route index element={<Dashboard />} />
-              <Route path="data-sources" element={<div className="p-6"><h1 className="text-2xl font-bold gradient-text">Data Sources</h1><p className="text-muted-foreground">Configure your data sources and integrations</p></div>} />
+              <Route path="data-sources" element={<DataInput />} />
               <Route path="realtime" element={<div className="p-6"><h1 className="text-2xl font-bold gradient-text">Real-time Monitoring</h1><p className="text-muted-foreground">Live sensor data and alerts</p></div>} />
               <Route path="devices" element={<div className="p-6"><h1 className="text-2xl font-bold gradient-text">IoT Devices</h1><p className="text-muted-foreground">Manage your connected devices</p></div>} />
               <Route path="reports" element={<div className="p-6"><h1 className="text-2xl font-bold gradient-text">Reports</h1><p className="text-muted-foreground">Analytics and detailed reports</p></div>} />

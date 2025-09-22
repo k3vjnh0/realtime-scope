@@ -19,8 +19,6 @@ import {
 import { MetricCard } from "@/components/MetricCard";
 import { SensorChart } from "@/components/SensorChart";
 import { NutrientChart, StatusGauge } from "@/components/AgricultureCharts";
-import { CSVUploader } from "@/components/CSVUploader";
-import { DataSender } from "@/components/DataSender";
 import { LatestDataDisplay } from "@/components/LatestDataDisplay";
 import { 
   environmentalData, 
@@ -31,34 +29,8 @@ import {
   deviceStatus 
 } from "@/data/mockData";
 
-interface CSVData {
-  N: number;
-  P: number;
-  K: number;
-  temperature: number;
-  humidity: number;
-  ph: number;
-  rainfall: number;
-  label: string;
-  soil_moisture: number;
-  soil_type: string;
-  sunlight_exposure: number;
-  wind_speed: number;
-  co2_concentration: number;
-  organic_matter: number;
-  irrigation_frequency: number;
-  crop_density: number;
-  pest_pressure: number;
-  fertilizer_usage: number;
-  growth_stage: string;
-  urban_area_proximity: number;
-  water_source_type: string;
-  frost_risk: number;
-  water_usage_efficiency: number;
-}
 
 export default function Dashboard() {
-  const [uploadedData, setUploadedData] = useState<CSVData[]>([]);
   const [latestDbData, setLatestDbData] = useState<any>(null);
 
   // Helper functions for data interpretation
@@ -94,8 +66,8 @@ export default function Dashboard() {
 
   // Get most recent data point and calculate metrics
   const processedMetrics = useMemo(() => {
-    // Prioritize latest database data over CSV data
-    const sourceData = latestDbData || (uploadedData.length > 0 ? uploadedData[uploadedData.length - 1] : null);
+    // Use latest database data
+    const sourceData = latestDbData;
     
     if (!sourceData) {
       return {
@@ -130,25 +102,10 @@ export default function Dashboard() {
       pestPressure: Math.round(latestData.pest_pressure * 10) / 10,
       cropHealthScore: Math.round(cropHealthScore * 10) / 10,
       latestData,
-      dataSource: latestDbData ? 'database' : 'csv'
+      dataSource: latestDbData ? 'database' : 'default'
     };
-  }, [uploadedData, latestDbData]);
+  }, [latestDbData]);
 
-  // Generate time series data from uploaded data
-  const generateTimeSeriesData = (field: keyof CSVData, unit: string) => {
-    if (uploadedData.length === 0) {
-      return environmentalData.temperature; // fallback to mock data
-    }
-
-    return uploadedData.slice(0, 24).map((item, index) => ({
-      time: `${index.toString().padStart(2, '0')}:00`,
-      value: Number(item[field]) || 0
-    }));
-  };
-
-  const handleDataUpload = (data: CSVData[]) => {
-    setUploadedData(data);
-  };
 
   const handleLatestDataFetched = (data: any) => {
     setLatestDbData(data);
@@ -159,12 +116,6 @@ export default function Dashboard() {
         <h1 className="text-3xl font-bold gradient-text">Agricultural IoT Dashboard</h1>
         <p className="text-muted-foreground">Comprehensive crop and environmental monitoring system</p>
       </div>
-
-      {/* CSV Upload Section */}
-      <CSVUploader onDataUpload={handleDataUpload} />
-
-      {/* Data Sender Section */}
-      <DataSender />
 
       {/* Latest Data Display */}
       <LatestDataDisplay onDataFetched={handleLatestDataFetched} />
@@ -216,13 +167,13 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <SensorChart
             title="Temperature (24h)"
-            data={generateTimeSeriesData('temperature', '°C')}
+            data={environmentalData.temperature}
             color="hsl(var(--primary))"
             unit="°C"
           />
           <SensorChart
             title="Humidity (24h)"
-            data={generateTimeSeriesData('humidity', '%')}
+            data={environmentalData.humidity}
             color="hsl(var(--dashboard-accent))"
             unit="%"
           />
@@ -231,13 +182,13 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <SensorChart
             title="CO2 Concentration (24h)"
-            data={generateTimeSeriesData('co2_concentration', ' ppm')}
+            data={environmentalData.co2_concentration}
             color="hsl(var(--dashboard-warning))"
             unit=" ppm"
           />
           <SensorChart
             title="Wind Speed (24h)"
-            data={generateTimeSeriesData('wind_speed', ' km/h')}
+            data={environmentalData.wind_speed}
             color="hsl(var(--dashboard-success))"
             unit=" km/h"
           />
@@ -245,7 +196,7 @@ export default function Dashboard() {
         
         <SensorChart
           title="Sunlight Exposure (24h)"
-          data={generateTimeSeriesData('sunlight_exposure', ' hrs/day')}
+          data={environmentalData.sunlight_exposure}
           color="hsl(38 92% 50%)"
           unit=" hrs/day"
         />
