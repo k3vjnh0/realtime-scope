@@ -20,6 +20,7 @@ import { MetricCard } from "@/components/MetricCard";
 import { SensorChart } from "@/components/SensorChart";
 import { NutrientChart, StatusGauge } from "@/components/AgricultureCharts";
 import { LatestDataDisplay } from "@/components/LatestDataDisplay";
+import { AlertSystem } from "@/components/AlertSystem";
 import { 
   environmentalData, 
   soilData, 
@@ -119,6 +120,9 @@ export default function Dashboard() {
 
       {/* Latest Data Display */}
       <LatestDataDisplay onDataFetched={handleLatestDataFetched} />
+      
+      {/* Alert System */}
+      <AlertSystem latestData={latestDbData} />
       
       {processedMetrics.dataSource === 'database' && (
         <div className="glass-card p-4">
