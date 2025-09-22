@@ -28,8 +28,7 @@ serve(async (req) => {
         'wind_speed', 'co2_concentration', 'organic_matter', 
         'irrigation_frequency', 'crop_density', 'pest_pressure', 
         'fertilizer_usage', 'growth_stage', 'urban_area_proximity', 
-        'water_source_type', 'frost_risk', 'water_usage_efficiency',
-        'predicted_crop'
+        'water_source_type', 'frost_risk', 'water_usage_efficiency'
       ];
 
       for (const field of requiredFields) {
@@ -55,7 +54,7 @@ serve(async (req) => {
           humidity: Number(body.humidity),
           ph: Number(body.ph),
           rainfall: Number(body.rainfall),
-          label: String(body.predicted_crop || body.label),
+          label: String(body.label || 'Unknown'),
           soil_moisture: Number(body.soil_moisture),
           soil_type: String(body.soil_type),
           sunlight_exposure: Number(body.sunlight_exposure),
