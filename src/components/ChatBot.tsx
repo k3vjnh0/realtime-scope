@@ -52,7 +52,7 @@ export function ChatBot() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://n8n.birthdaymessaging.space/webhook-test/itcodefair-chatbot', {
+      const response = await fetch('https://n8n.birthdaymessaging.space/webhook/itcodefair-chatbot', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
