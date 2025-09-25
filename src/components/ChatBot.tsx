@@ -70,9 +70,19 @@ export function ChatBot() {
 
       const data = await response.json();
       
+      // Handle n8n array response format: [{ "output": "message" }]
+      let botText = 'I apologize, but I encountered an issue. Please try again.';
+      if (Array.isArray(data) && data.length > 0 && data[0].output) {
+        botText = data[0].output;
+      } else if (data.output) {
+        botText = data.output;
+      } else if (data.response || data.message) {
+        botText = data.response || data.message;
+      }
+      
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.response || data.message || 'I apologize, but I encountered an issue. Please try again.',
+        text: botText,
         sender: 'bot',
         timestamp: new Date()
       };
