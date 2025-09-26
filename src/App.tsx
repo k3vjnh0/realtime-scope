@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import DataInput from "./pages/DataInput";
+import { RouteDisplay } from "./pages/RouteDisplay";
 import NotFound from "./pages/NotFound";
 
 const App = () => {
@@ -23,6 +24,7 @@ const App = () => {
               <Route path="data-sources" element={<DataInput />} />
               <Route path="realtime" element={<div className="p-6"><h1 className="text-2xl font-bold gradient-text">Real-time Monitoring</h1><p className="text-muted-foreground">Live sensor data and alerts</p></div>} />
               <Route path="devices" element={<div className="p-6"><h1 className="text-2xl font-bold gradient-text">IoT Devices</h1><p className="text-muted-foreground">Manage your connected devices</p></div>} />
+              <Route path="route-display" element={<RouteDisplay />} />
               <Route path="reports" element={<div className="p-6"><h1 className="text-2xl font-bold gradient-text">Reports</h1><p className="text-muted-foreground">Analytics and detailed reports</p></div>} />
               <Route path="alerts" element={<div className="p-6"><h1 className="text-2xl font-bold gradient-text">Alerts</h1><p className="text-muted-foreground">Notification settings and alert history</p></div>} />
               <Route path="users" element={<div className="p-6"><h1 className="text-2xl font-bold gradient-text">Users</h1><p className="text-muted-foreground">User management and permissions</p></div>} />
