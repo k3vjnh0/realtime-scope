@@ -28,7 +28,7 @@ const items = [
   { title: "Data Sources", url: "/data-sources", icon: Database },
   { title: "Real-time", url: "/realtime", icon: Activity },
   { title: "IoT Devices", url: "/devices", icon: Wifi },
-  { title: "Route Display", url: "/route-display", icon: MapPin },
+  { title: "Route Planner", url: "/route-display", icon: MapPin },
   { title: "Reports", url: "/reports", icon: FileText },
   { title: "Alerts", url: "/alerts", icon: AlertTriangle },
   { title: "Users", url: "/users", icon: Users },
